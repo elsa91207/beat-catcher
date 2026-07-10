@@ -320,7 +320,7 @@
       display: block;
       width: 100%;
       height: 100%;
-      touch-action: manipulation;
+      touch-action: none;
     }
 
     .overlay {
@@ -840,6 +840,16 @@
     function move(delta) {
       playerLane = Math.max(0, Math.min(lanes - 1, playerLane + delta));
       targetX = laneCenter(playerLane);
+      beatPulse = 1;
+    }
+
+    // 讓接收器直接跟著手指/滑鼠的水平位置移動（拖曳操控）。
+    // targetX 夾在軌道範圍內，playerLane 由目前位置推得以判定接音符。
+    function moveTo(x) {
+      const minX = laneCenter(0);
+      const maxX = laneCenter(lanes - 1);
+      targetX = Math.max(minX, Math.min(maxX, x));
+      playerLane = Math.max(0, Math.min(lanes - 1, Math.floor((targetX - laneOffset) / laneWidth)));
       beatPulse = 1;
     }
 
@@ -1471,15 +1481,34 @@
       }
     });
 
+    let dragging = false;
+
+    function pointerX(event) {
+      const rect = canvas.getBoundingClientRect();
+      return event.clientX - rect.left;
+    }
+
     canvas.addEventListener("pointerdown", (event) => {
       if (state !== "playing") {
         startGame();
         return;
       }
-      const rect = canvas.getBoundingClientRect();
-      const x = event.clientX - rect.left;
-      move(x < rect.width / 2 ? -1 : 1);
+      dragging = true;
+      if (canvas.setPointerCapture) canvas.setPointerCapture(event.pointerId);
+      moveTo(pointerX(event));
     });
+
+    canvas.addEventListener("pointermove", (event) => {
+      if (!dragging || state !== "playing") return;
+      moveTo(pointerX(event));
+    });
+
+    function endDrag() {
+      dragging = false;
+    }
+    canvas.addEventListener("pointerup", endDrag);
+    canvas.addEventListener("pointercancel", endDrag);
+    canvas.addEventListener("pointerleave", endDrag);
 
     startBtn.addEventListener("click", startGame);
     pauseBtn.addEventListener("click", () => {
