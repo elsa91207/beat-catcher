@@ -718,9 +718,9 @@
     let songElapsed = 0;
     let followLevel = 4;
 
-    // 跟隨速度等級 1~6（慢→快）：每級加倍拉大差距；6 級幾乎 1:1 瞬間跟上。
+    // 跟隨速度等級 1~6（慢→快）：每級 ×2.5 拉大級間差距；1 級很飄、6 級幾乎 1:1。
     function followEase() {
-      return 4 * Math.pow(2, followLevel - 1);
+      return 2 * Math.pow(2.5, followLevel - 1);
     }
 
     bestEl.textContent = best;
