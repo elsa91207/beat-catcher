@@ -1,6 +1,6 @@
 // 節奏捕手 Service Worker — cache-first app shell 做完整離線遊玩。
 // 改動 app 內容時把版本號 +1 以觸發更新（舊快取會在 activate 清掉）。
-const CACHE = "beat-catcher-v1";
+const CACHE = "beat-catcher-v2";
 const ASSETS = [
   "./",
   "./index.html",

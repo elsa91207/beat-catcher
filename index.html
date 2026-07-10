@@ -320,6 +320,7 @@
       display: block;
       width: 100%;
       height: 100%;
+      touch-action: manipulation;
     }
 
     .overlay {
@@ -364,24 +365,37 @@
     }
 
     @media (max-width: 780px) {
+      html,
       body {
+        height: auto;
+      }
+
+      body {
+        display: block;
         overflow: auto;
       }
 
       .shell {
         width: 100vw;
+        height: auto;
         min-height: 100vh;
-        height: 100vh;
         grid-template-columns: 1fr;
-        grid-template-rows: auto minmax(0, 1fr);
+        grid-template-rows: auto auto;
         border: 0;
+      }
+
+      .stage {
+        order: -1;
+        height: 58vh;
+        min-height: 340px;
       }
 
       .sidebar {
         padding: 14px;
         gap: 12px;
+        overflow: visible;
         border-right: 0;
-        border-bottom: 1px solid var(--line);
+        border-top: 1px solid var(--line);
       }
 
       .brand {
