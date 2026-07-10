@@ -432,7 +432,7 @@
         <div class="record" aria-hidden="true"></div>
         <div>
           <h1>節奏捕手</h1>
-      <p class="sub">三條音軌，一台小播放器，一首越跑越快的歌。</p>
+      <p class="sub">三條音軌，一台小播放器，一首越跑越快的歌。<br><span id="buildTag" style="opacity:.6">build 2026-07-10-a</span></p>
         </div>
       </div>
 
@@ -826,10 +826,10 @@
     }
 
     // 讓接收器直接跟著手指/滑鼠的水平位置移動（拖曳操控）。
-    // targetX 夾在軌道範圍內，playerLane 由目前位置推得以判定接音符。
+    // targetX 夾在整個軌道區寬度內（跨滿全寬跟手），playerLane 由位置推得以判定接音符。
     function moveTo(x) {
-      const minX = laneCenter(0);
-      const maxX = laneCenter(lanes - 1);
+      const minX = laneOffset + laneWidth / 2;
+      const maxX = laneOffset + laneAreaWidth - laneWidth / 2;
       targetX = Math.max(minX, Math.min(maxX, x));
       playerLane = Math.max(0, Math.min(lanes - 1, Math.floor((targetX - laneOffset) / laneWidth)));
       beatPulse = 1;

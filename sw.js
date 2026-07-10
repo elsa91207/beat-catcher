@@ -3,7 +3,7 @@
 //       其他靜態資源走 stale-while-revalidate（先給快取、背景更新）。
 // 因此改 app 內容後「部署即更新」，使用者不必重裝或手動清快取；
 // 只有調整快取結構本身時才需要把版本號 +1。
-const CACHE = "beat-catcher-v3";
+const CACHE = "beat-catcher-v4";
 const ASSETS = [
   "./",
   "./index.html",
