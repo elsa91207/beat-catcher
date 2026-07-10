@@ -223,29 +223,6 @@
       font-size: 0.82rem;
     }
 
-    .theme-controls {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
-    }
-
-    .color-field {
-      display: grid;
-      gap: 5px;
-      color: var(--muted);
-      font-size: 0.72rem;
-      font-weight: 800;
-    }
-
-    .color-field input {
-      width: 100%;
-      height: 34px;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      padding: 2px;
-      background: #22252b;
-    }
-
     .difficulty {
       display: grid;
       gap: 8px;
@@ -496,21 +473,6 @@
         </div>
       </section>
 
-      <section class="difficulty" aria-label="背景顏色">
-        <span class="label">背景</span>
-        <div class="theme-controls">
-          <label class="color-field">上
-            <input class="theme-color" data-bg="--bg-a" type="color" value="#101114">
-          </label>
-          <label class="color-field">中
-            <input class="theme-color" data-bg="--bg-b" type="color" value="#17181c">
-          </label>
-          <label class="color-field">下
-            <input class="theme-color" data-bg="--bg-c" type="color" value="#0d0f12">
-          </label>
-        </div>
-      </section>
-
       <section class="difficulty" aria-label="難度">
         <span class="label">難度</span>
         <div class="difficulty-options">
@@ -564,7 +526,6 @@
     const trackNameEl = document.querySelector("#trackName");
     const trackBpmEl = document.querySelector("#trackBpm");
     const difficultyBtns = document.querySelectorAll(".difficulty-btn");
-    const themeColors = document.querySelectorAll(".theme-color");
     const followRange = document.querySelector("#followRange");
     const followValue = document.querySelector("#followValue");
 
@@ -1534,11 +1495,6 @@
       voiceBtn.textContent = vocalEnabled ? "人聲 ON" : "人聲 OFF";
     });
     audioFile.addEventListener("change", () => loadUploadedAudio(audioFile.files[0]));
-    themeColors.forEach((input) => {
-      input.addEventListener("input", () => {
-        document.documentElement.style.setProperty(input.dataset.bg, input.value);
-      });
-    });
     difficultyBtns.forEach((button) => {
       button.addEventListener("click", () => setDifficulty(button.dataset.difficulty));
     });
