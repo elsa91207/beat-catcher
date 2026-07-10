@@ -432,7 +432,7 @@
         <div class="record" aria-hidden="true"></div>
         <div>
           <h1>節奏捕手</h1>
-      <p class="sub">三條音軌，一台小播放器，一首越跑越快的歌。<br><span id="buildTag" style="opacity:.6">build 2026-07-10-a</span></p>
+      <p class="sub">三條音軌，一台小播放器，一首越跑越快的歌。<br><span id="buildTag" style="opacity:.6">build 2026-07-10-b</span></p>
         </div>
       </div>
 
@@ -831,6 +831,7 @@
       const minX = laneOffset + laneWidth / 2;
       const maxX = laneOffset + laneAreaWidth - laneWidth / 2;
       targetX = Math.max(minX, Math.min(maxX, x));
+      playerX = targetX; // 觸控/滑鼠直接 1:1 貼手，零延遲（不經緩動）
       playerLane = Math.max(0, Math.min(lanes - 1, Math.floor((targetX - laneOffset) / laneWidth)));
       beatPulse = 1;
     }
