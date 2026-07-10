@@ -1508,8 +1508,20 @@
 
     // PWA：註冊 Service Worker 以支援安裝與離線遊玩（與遊戲邏輯無耦合）
     if ("serviceWorker" in navigator) {
+      // 已有控制權的頁面才在新版接手時自動重載（避免首次安裝就重整）。
+      const hadController = !!navigator.serviceWorker.controller;
+      let refreshing = false;
+      navigator.serviceWorker.addEventListener("controllerchange", () => {
+        if (!hadController || refreshing) return;
+        refreshing = true;
+        window.location.reload();
+      });
       window.addEventListener("load", () => {
-        navigator.serviceWorker.register("sw.js").catch(() => {});
+        navigator.serviceWorker.register("sw.js").then((reg) => {
+          // 定期檢查新版；有更新時 SW 會自動 skipWaiting → claim → 觸發重載。
+          reg.update();
+          setInterval(() => reg.update(), 60 * 60 * 1000);
+        }).catch(() => {});
       });
     }
   </script>
