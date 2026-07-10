@@ -483,8 +483,8 @@
       </section>
 
       <section class="difficulty" aria-label="跟隨速度">
-        <span class="label">跟隨速度 · <span id="followValue">6</span></span>
-        <input class="follow-range" id="followRange" type="range" min="1" max="12" step="1" value="6" aria-label="手動跟隨速度 1 到 12（慢到快）">
+        <span class="label">跟隨速度 · <span id="followValue">4</span></span>
+        <input class="follow-range" id="followRange" type="range" min="1" max="6" step="1" value="4" aria-label="手動跟隨速度 1 到 6（慢到快）">
       </section>
 
       <div class="controls">
@@ -716,11 +716,11 @@
     let songTimer = 0;
     let songStep = 0;
     let songElapsed = 0;
-    let followLevel = 6;
+    let followLevel = 4;
 
-    // 跟隨速度等級 1~12（慢→快）換算成緩動係數；6 ≈ 原本手感，12 幾乎 1:1。
+    // 跟隨速度等級 1~6（慢→快）：每級加倍拉大差距；6 級幾乎 1:1 瞬間跟上。
     function followEase() {
-      return 3 * Math.pow(1.34, followLevel - 1);
+      return 4 * Math.pow(2, followLevel - 1);
     }
 
     bestEl.textContent = best;
