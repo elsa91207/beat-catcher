@@ -354,6 +354,14 @@
       line-height: 1.55;
     }
 
+    .follow-range {
+      width: 100%;
+      margin: 2px 0 0;
+      accent-color: var(--lime);
+      cursor: pointer;
+      min-height: 32px;
+    }
+
     .hidden {
       display: none;
     }
@@ -512,6 +520,11 @@
         </div>
       </section>
 
+      <section class="difficulty" aria-label="跟隨速度">
+        <span class="label">跟隨速度 · <span id="followValue">6</span></span>
+        <input class="follow-range" id="followRange" type="range" min="1" max="12" step="1" value="6" aria-label="手動跟隨速度 1 到 12（慢到快）">
+      </section>
+
       <div class="controls">
         <button class="primary" id="startBtn">開始</button>
         <button class="ghost" id="pauseBtn">暫停</button>
@@ -552,6 +565,8 @@
     const trackBpmEl = document.querySelector("#trackBpm");
     const difficultyBtns = document.querySelectorAll(".difficulty-btn");
     const themeColors = document.querySelectorAll(".theme-color");
+    const followRange = document.querySelector("#followRange");
+    const followValue = document.querySelector("#followValue");
 
     const lanes = 3;
     const notes = [];
@@ -740,6 +755,12 @@
     let songTimer = 0;
     let songStep = 0;
     let songElapsed = 0;
+    let followLevel = 6;
+
+    // 跟隨速度等級 1~12（慢→快）換算成緩動係數；6 ≈ 原本手感，12 幾乎 1:1。
+    function followEase() {
+      return 3 * Math.pow(1.34, followLevel - 1);
+    }
 
     bestEl.textContent = best;
     populateTrackSelect();
@@ -1068,7 +1089,7 @@
         if (Math.random() < difficulty.extraSpawnChance) spawnNote(chooseOpenLane());
       }
 
-      playerX += (targetX - playerX) * Math.min(1, seconds * 14);
+      playerX += (targetX - playerX) * Math.min(1, seconds * followEase());
 
       for (let i = notes.length - 1; i >= 0; i--) {
         const note = notes[i];
@@ -1481,8 +1502,6 @@
       }
     });
 
-    let dragging = false;
-
     function pointerX(event) {
       const rect = canvas.getBoundingClientRect();
       return event.clientX - rect.left;
@@ -1493,22 +1512,16 @@
         startGame();
         return;
       }
-      dragging = true;
+      // 手指按到哪就先跟過去；並抓住指標，即使移出畫布也持續跟隨。
       if (canvas.setPointerCapture) canvas.setPointerCapture(event.pointerId);
       moveTo(pointerX(event));
     });
 
+    // 只要在遊戲區移動，接收器就直接跟著手指/滑鼠位置走（免按住）。
     canvas.addEventListener("pointermove", (event) => {
-      if (!dragging || state !== "playing") return;
+      if (state !== "playing") return;
       moveTo(pointerX(event));
     });
-
-    function endDrag() {
-      dragging = false;
-    }
-    canvas.addEventListener("pointerup", endDrag);
-    canvas.addEventListener("pointercancel", endDrag);
-    canvas.addEventListener("pointerleave", endDrag);
 
     startBtn.addEventListener("click", startGame);
     pauseBtn.addEventListener("click", () => {
@@ -1530,6 +1543,10 @@
       button.addEventListener("click", () => setDifficulty(button.dataset.difficulty));
     });
     trackSelect.addEventListener("change", () => setTrack(Number(trackSelect.value)));
+    followRange.addEventListener("input", () => {
+      followLevel = Number(followRange.value);
+      followValue.textContent = followLevel;
+    });
 
     resize();
     updateHud();
