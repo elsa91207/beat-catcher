@@ -339,6 +339,133 @@
       min-height: 32px;
     }
 
+    .rank-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      background: rgba(6, 7, 9, 0.72);
+      backdrop-filter: blur(6px);
+    }
+
+    .rank-card {
+      width: min(460px, 100%);
+      max-height: min(80vh, 640px);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 12px;
+      background: #15171b;
+      box-shadow: 0 24px 70px rgba(0, 0, 0, 0.5);
+    }
+
+    .rank-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .rank-head h2 {
+      margin: 0;
+      font-size: 1.4rem;
+    }
+
+    .rank-close {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      background: #22252b;
+      color: var(--ink);
+      font-size: 1rem;
+    }
+
+    .rank-me {
+      display: grid;
+      gap: 6px;
+    }
+
+    .rank-name {
+      width: 100%;
+      min-height: 40px;
+      padding: 0 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #101114;
+      color: var(--ink);
+      font: inherit;
+    }
+
+    .rank-list {
+      flex: 1;
+      overflow-y: auto;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .rank-list li {
+      display: grid;
+      grid-template-columns: 34px 1fr auto;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #191b20;
+    }
+
+    .rank-list li.me {
+      border-color: var(--lime);
+      background: #1c2418;
+    }
+
+    .rank-pos {
+      font-weight: 800;
+      color: var(--muted);
+    }
+
+    .rank-list li:nth-child(1) .rank-pos { color: var(--gold); }
+    .rank-list li:nth-child(2) .rank-pos { color: #d7dde6; }
+    .rank-list li:nth-child(3) .rank-pos { color: var(--coral); }
+
+    .rank-who {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-weight: 700;
+    }
+
+    .rank-meta {
+      display: block;
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--muted);
+    }
+
+    .rank-score {
+      font-weight: 800;
+      font-size: 1.1rem;
+    }
+
+    .rank-status {
+      margin: 0;
+      min-height: 1.2em;
+      color: var(--muted);
+      font-size: 0.86rem;
+    }
+
+    .rank-refresh {
+      min-height: 40px;
+    }
+
     .hidden {
       display: none;
     }
@@ -432,7 +559,7 @@
         <div class="record" aria-hidden="true"></div>
         <div>
           <h1>節奏捕手</h1>
-      <p class="sub">三條音軌，一台小播放器，一首越跑越快的歌。<br><span id="buildTag" style="opacity:.6">build 2026-07-10-b</span></p>
+      <p class="sub">三條音軌，一台小播放器，一首越跑越快的歌。<br><span id="buildTag" style="opacity:.6">build 2026-07-10-c</span></p>
         </div>
       </div>
 
@@ -459,8 +586,8 @@
         </div>
       </section>
 
-      <div class="meter" aria-label="能量">
-        <span id="energy"></span>
+      <div class="meter" aria-label="血量">
+        <span id="health"></span>
       </div>
 
       <section class="track" aria-label="目前曲目">
@@ -491,6 +618,7 @@
         <button class="primary" id="startBtn">開始</button>
         <button class="ghost" id="pauseBtn">暫停</button>
         <button class="voice-toggle active" id="voiceBtn">人聲 ON</button>
+        <button class="ghost" id="rankBtn">排行榜</button>
       </div>
     </aside>
 
@@ -505,6 +633,22 @@
     </section>
   </main>
 
+  <div class="rank-modal hidden" id="rankModal">
+    <div class="rank-card">
+      <div class="rank-head">
+        <h2>排行榜</h2>
+        <button class="rank-close" id="rankClose" aria-label="關閉">✕</button>
+      </div>
+      <div class="rank-me">
+        <span class="label">你的名字</span>
+        <input class="rank-name" id="rankName" type="text" maxlength="16" placeholder="輸入名字（會記住）">
+      </div>
+      <ol class="rank-list" id="rankList"></ol>
+      <p class="rank-status" id="rankStatus"></p>
+      <button class="ghost rank-refresh" id="rankRefresh">重新整理</button>
+    </div>
+  </div>
+
   <script>
     const canvas = document.querySelector("#game");
     const ctx = canvas.getContext("2d");
@@ -514,7 +658,7 @@
     const bestEl = document.querySelector("#best");
     const levelEl = document.querySelector("#level");
     const timeLeftEl = document.querySelector("#timeLeft");
-    const energyEl = document.querySelector("#energy");
+    const healthEl = document.querySelector("#health");
     const overlay = document.querySelector("#overlay");
     const messageTitle = document.querySelector("#messageTitle");
     const messageText = document.querySelector("#messageText");
@@ -528,6 +672,22 @@
     const difficultyBtns = document.querySelectorAll(".difficulty-btn");
     const followRange = document.querySelector("#followRange");
     const followValue = document.querySelector("#followValue");
+    const rankBtn = document.querySelector("#rankBtn");
+    const rankModal = document.querySelector("#rankModal");
+    const rankClose = document.querySelector("#rankClose");
+    const rankList = document.querySelector("#rankList");
+    const rankStatus = document.querySelector("#rankStatus");
+    const rankRefresh = document.querySelector("#rankRefresh");
+    const rankName = document.querySelector("#rankName");
+
+    // === 線上排行榜設定 ===
+    // 貼上你的 Firebase Realtime Database 網址（結尾不用斜線）。
+    // 例如： https://beat-catcher-xxxx-default-rtdb.asia-southeast1.firebasedatabase.app
+    // 留空 = 尚未設定，排行榜會提示你先設定。
+    const LEADERBOARD_URL = "";
+    const nameKey = "beat-catcher-name";
+    let playerName = localStorage.getItem(nameKey) || "";
+    let lastSubmittedKey = "";
 
     const lanes = 3;
     const notes = [];
@@ -648,11 +808,7 @@
         extraSpawnChance: 0.08,
         noiseBase: 0.025,
         noiseGain: 9000,
-        noiseMax: 0.11,
-        drain: 0.62,
-        missPenalty: 6,
-        noisePenalty: 12,
-        catchEnergy: 7
+        noiseMax: 0.11
       },
       normal: {
         label: "中級",
@@ -663,11 +819,7 @@
         extraSpawnChance: 0.18,
         noiseBase: 0.05,
         noiseGain: 7600,
-        noiseMax: 0.17,
-        drain: 1.25,
-        missPenalty: 9,
-        noisePenalty: 18,
-        catchEnergy: 5
+        noiseMax: 0.17
       },
       hard: {
         label: "高級",
@@ -678,11 +830,7 @@
         extraSpawnChance: 0.28,
         noiseBase: 0.08,
         noiseGain: 6200,
-        noiseMax: 0.24,
-        drain: 2,
-        missPenalty: 13,
-        noisePenalty: 24,
-        catchEnergy: 4
+        noiseMax: 0.24
       }
     };
 
@@ -698,7 +846,11 @@
     let combo = 0;
     let maxCombo = 0;
     let best = Number(localStorage.getItem(bestKey) || 0);
-    let energy = 100;
+    let health = 100;
+    // 血量:滿血 100,碰迴旋鏢或漏接音符各扣 1/15,約 15 次失誤耗盡。
+    const HIT_DAMAGE = 100 / 15;
+    // 每首歌的遊戲時間統一約一分半。
+    const GAME_DURATION = 90;
     let speed = 250;
     let spawnEvery = 730;
     let spawnTimer = 0;
@@ -755,7 +907,7 @@
       score = 0;
       combo = 0;
       maxCombo = 0;
-      energy = 100;
+      health = 100;
       speed = difficulty.startSpeed;
       spawnEvery = 730;
       spawnTimer = 0;
@@ -763,6 +915,7 @@
       songTimer = 0;
       songStep = 0;
       songElapsed = 0;
+      lastSubmittedKey = "";
       resetUploadedAudio();
       updateHud();
     }
@@ -796,6 +949,7 @@
       best = Math.max(best, score);
       localStorage.setItem(bestKey, String(best));
       updateHud();
+      submitScore(score);
       showMessage("曲目結束", `分數 ${score}，最高連擊 ${maxCombo}。按開始再跑一首。`);
       playTone(96, 0.18, "sawtooth", 0.05);
     }
@@ -807,6 +961,7 @@
       best = Math.max(best, score);
       localStorage.setItem(bestKey, String(best));
       updateHud();
+      submitScore(score);
       showMessage("歌曲完成", `${track.title} 完成！分數 ${score}，最高連擊 ${maxCombo}。`);
       playTone(523.25, 0.12, "sine", 0.04);
       setTimeout(() => playTone(659.25, 0.12, "sine", 0.035), 120);
@@ -817,6 +972,82 @@
       messageTitle.textContent = title;
       messageText.textContent = text;
       overlay.classList.remove("hidden");
+    }
+
+    // === 線上排行榜 ===
+    function leaderboardConfigured() {
+      return typeof LEADERBOARD_URL === "string" && LEADERBOARD_URL.indexOf("http") === 0;
+    }
+
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, (c) =>
+        ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    }
+
+    function submitScore(finalScore) {
+      if (!leaderboardConfigured() || finalScore <= 0) return;
+      const name = (playerName || "匿名").slice(0, 16);
+      const key = `${name}:${finalScore}:${track.title}`;
+      if (key === lastSubmittedKey) return; // 同一輪只送一次
+      lastSubmittedKey = key;
+      fetch(`${LEADERBOARD_URL}/scores.json`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name,
+          score: finalScore,
+          combo: maxCombo,
+          difficulty: difficulty.label,
+          track: uploadedTrackTitle || track.title,
+          ts: Date.now()
+        })
+      }).catch(() => {});
+    }
+
+    function openLeaderboard() {
+      rankName.value = playerName;
+      rankModal.classList.remove("hidden");
+      renderLeaderboard();
+    }
+
+    function closeLeaderboard() {
+      rankModal.classList.add("hidden");
+    }
+
+    function renderLeaderboard() {
+      if (!leaderboardConfigured()) {
+        rankList.innerHTML = "";
+        rankStatus.textContent = "尚未設定雲端排行榜（請把 Firebase 網址填入程式的 LEADERBOARD_URL）。";
+        return;
+      }
+      rankStatus.textContent = "載入中…";
+      rankList.innerHTML = "";
+      fetch(`${LEADERBOARD_URL}/scores.json`)
+        .then((res) => res.json())
+        .then((data) => {
+          const rows = data
+            ? Object.values(data).filter((r) => r && typeof r.score === "number")
+            : [];
+          rows.sort((a, b) => b.score - a.score);
+          const top = rows.slice(0, 30);
+          if (!top.length) {
+            rankStatus.textContent = "還沒有任何分數，快去玩一場！";
+            return;
+          }
+          rankList.innerHTML = top.map((r, i) => {
+            const mine = playerName && r.name === playerName;
+            const when = r.ts ? new Date(r.ts).toLocaleDateString() : "";
+            const meta = [r.difficulty, r.track, when].filter(Boolean).join(" · ");
+            return `<li class="${mine ? "me" : ""}">`
+              + `<span class="rank-pos">${i + 1}</span>`
+              + `<span class="rank-who">${escapeHtml(r.name || "匿名")}<span class="rank-meta">${escapeHtml(meta)}</span></span>`
+              + `<span class="rank-score">${r.score}</span></li>`;
+          }).join("");
+          rankStatus.textContent = `共 ${rows.length} 筆，顯示前 ${top.length} 名。`;
+        })
+        .catch(() => {
+          rankStatus.textContent = "讀取失敗，請檢查網路或資料庫網址／規則。";
+        });
     }
 
     function move(delta) {
@@ -893,7 +1124,7 @@
     function getSongDuration() {
       return uploadedAudio?.duration && Number.isFinite(uploadedAudio.duration)
         ? uploadedAudio.duration
-        : track.duration;
+        : Math.min(track.duration, GAME_DURATION);
     }
 
     function formatTime(totalSeconds) {
@@ -959,7 +1190,8 @@
 
     function spawnNote(forcedLane, options = {}) {
       const lane = normalizeLane(forcedLane ?? chooseOpenLane());
-      if (!options.force && laneNoteCount(lane) >= 2) return false;
+      // 同一音軌同時只允許一顆音符,已有音符就不再生成。
+      if (laneNoteCount(lane) >= 1) return false;
 
       const noiseChance = Math.min(
         difficulty.noiseMax,
@@ -981,7 +1213,7 @@
     }
 
     function laneNoteCount(lane) {
-      return notes.filter((note) => note.lane === lane && note.y < height - 128).length;
+      return notes.filter((note) => note.lane === lane).length;
     }
 
     function chooseOpenLane(preferredLane) {
@@ -1065,14 +1297,13 @@
           notes.splice(i, 1);
           if (note.kind === "noise") {
             combo = 0;
-            energy -= difficulty.noisePenalty;
+            health -= HIT_DAMAGE;
             burst(laneCenter(note.lane), catchY, "#ff6b66", 15);
             playTone(130, 0.07, "square", 0.04);
           } else {
             combo += 1;
             maxCombo = Math.max(maxCombo, combo);
             score += 100 + combo * 8;
-            energy = Math.min(100, energy + difficulty.catchEnergy);
             burst(laneCenter(note.lane), catchY, colors[note.lane], 18);
             playTone(360 + note.lane * 90 + Math.min(combo, 20) * 6, 0.06, "sine", 0.035);
           }
@@ -1082,7 +1313,7 @@
           notes.splice(i, 1);
           if (note.kind === "note") {
             combo = 0;
-            energy -= difficulty.missPenalty;
+            health -= HIT_DAMAGE;
             updateHud();
           }
         }
@@ -1096,14 +1327,13 @@
         if (p.life <= 0) particles.splice(i, 1);
       }
 
-      energy -= seconds * difficulty.drain;
       const duration = getSongDuration();
       if (songElapsed >= duration) {
         songElapsed = duration;
         updateHud();
         finishSong();
-      } else if (energy <= 0) {
-        energy = 0;
+      } else if (health <= 0) {
+        health = 0;
         updateHud();
         gameOver();
       } else {
@@ -1281,7 +1511,7 @@
         1,
         Math.floor((speed - difficulty.startSpeed) / 55) + 1
       );
-      energyEl.style.width = `${Math.max(0, energy)}%`;
+      healthEl.style.width = `${Math.max(0, health)}%`;
     }
 
     function ensureAudio() {
@@ -1503,6 +1733,16 @@
     followRange.addEventListener("input", () => {
       followLevel = Number(followRange.value);
       followValue.textContent = followLevel;
+    });
+    rankBtn.addEventListener("click", openLeaderboard);
+    rankClose.addEventListener("click", closeLeaderboard);
+    rankRefresh.addEventListener("click", renderLeaderboard);
+    rankModal.addEventListener("click", (event) => {
+      if (event.target === rankModal) closeLeaderboard();
+    });
+    rankName.addEventListener("input", () => {
+      playerName = rankName.value.trim().slice(0, 16);
+      localStorage.setItem(nameKey, playerName);
     });
 
     resize();
